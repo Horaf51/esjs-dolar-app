@@ -1,22 +1,48 @@
-importar { Terminal } desde '@es-js/terminal'
+import { Terminal } from "@es-js/terminal";
+import { obtenerJson } from "https://desarrollo-aplicaciones.vercel.app/2024/code/obtener-json.js";
+import { validarSecreto } from "https://desarrollo-aplicaciones.vercel.app/2024/code/validar-secreto.js";
 
-asincrono funcion inicio() {
-	Terminal.limpiar()
-
-	Terminal.escribir('Ingresa un valor:')
-
-	const resultado = esperar Terminal.leer()
-
-	Terminal.escribir({
-		Resultado: resultado,
-		Tipo: tipoDe resultado,
-	})
-
-	Terminal.escribir('Presiona ENTER para volver a iniciar')
-
-	esperar Terminal.leerEnter()
-
-	esperar inicio()
+async function obtenerCotizacion() {
+  try {
+    const dolarBlue = await obtenerJson("https://dolarapi.com/v1/dolares/blue");
+    return dolarBlue;
+  } catch (error) {
+    console.error("Error al obtener la cotización:", error);
+    return null;
+  }
 }
 
-inicio()
+async function autenticar(dni, palabraSecreta) {
+  return await validarSecreto(dni, palabraSecreta);
+}
+
+async function inicio() {
+  Terminal.escribir("Hola! Ingresa la palabra secreta:");
+  const secreto = await Terminal.leer();
+  const dni = "23002774";
+  if (await autenticar(dni, secreto)) {
+    await mostrarCotizacion();
+  } else {
+    Terminal.escribir("Palabra secreta inválida");
+  }
+  Terminal.escribir("Presiona ENTER para volver a ingresar");
+  await Terminal.leerEnter();
+  Terminal.limpiar();
+  inicio();
+}
+
+async function mostrarCotizacion() {
+  const dolarBlue = await obtenerCotizacion();
+  if (dolarBlue) {
+    Terminal.escribir(`Cotización del Dólar Blue:`);
+    Terminal.escribir(`Venta: ${dolarBlue.venta}`);
+    Terminal.escribir(`Compra: ${dolarBlue.compra}`);
+    Terminal.escribir(`Promedio: ${(dolarBlue.venta + dolarBlue.compra) / 2}`);
+    Terminal.escribir(`Fecha: ${dolarBlue.fechaActualizacion}`);
+    
+  } else {
+    Terminal.escribir("Error al obtener la cotización del Dólar Blue.");
+  }
+}
+
+inicio();
